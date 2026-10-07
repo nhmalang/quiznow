@@ -7,7 +7,6 @@
   <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <style>
-    /* (Bagian CSS tetap sama persis seperti file asli Anda, saya singkat untuk kerapihan, jangan hapus CSS aslinya) */
     :root { --bg: #0a0f1c; --card: #111827; --primary: #0d6efd; --cyan: #06b6d4; --yellow: #eab308; --text: #f1f5f9; --muted: #94a3b8; --shadow: 0 10px 25px rgba(0,0,0,0.6); --radius: 16px; }
     *{margin:0;padding:0;box-sizing:border-box;} body{font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text); display:flex; justify-content:center; align-items:center; min-height:100vh; padding:20px; background-image:radial-gradient(circle at 30% 30%,rgba(6,182,212,0.08) 0%,transparent 50%), radial-gradient(circle at 70% 70%,rgba(13,110,253,0.1) 0%,transparent 50%);}
     .container{max-width:900px;width:100%; background:var(--card);border-radius:var(--radius); padding:20px 25px; box-shadow:var(--shadow),0 0 0 1px rgba(255,255,255,0.05);} h1{font-size:2rem;font-weight:700;text-align:center;margin-bottom:5px; background:linear-gradient(135deg,#3b82f6,#06b6d4); -webkit-background-clip:text;-webkit-text-fill-color:transparent; background-clip:text;}
@@ -81,7 +80,7 @@
   function getHostHTML() {
     return `
       <h1>🎮 Kuis Interaktif (Host)</h1>
-      <p class="subtitle">Didukung oleh Spreadsheet & Google Drive</p>
+      <p class="subtitle">Didukung oleh Spreadsheet & Gambar Online</p>
       <div class="group-section">
         <button id="group1Btn" class="group-btn g1 active"><span>🔵 Kelompok 1</span><span class="group-score" id="score1">0</span></button>
         <button id="group2Btn" class="group-btn g2"><span>🟠 Kelompok 2</span><span class="group-score" id="score2">0</span></button>
@@ -133,7 +132,6 @@
   let connections = [];
 
   async function fetchQuestionsFromSheet() {
-        
     try {
       const btnB = document.getElementById('refreshDataBox');
       const btnW = document.getElementById('refreshDataWheel');
@@ -274,38 +272,26 @@
   }
 
   function showQuestionModal(q, callback) {
-      document.getElementById('modalQuestion').textContent = q.question;
+    document.getElementById('modalQuestion').textContent = q.question;
+    
+    // RENDER GAMBAR DARI DRIVE ATAU IMGBB
+    const imgEl = document.getElementById('modalImage');
+    if (q.imageId && q.imageId.trim() !== '') {
+      const imgVal = q.imageId.trim();
       
-      // RENDER GAMBAR DARI DRIVE ATAU IMGBB
-      const imgEl = document.getElementById('modalImage');
-      if (q.imageId && q.imageId.trim() !== '') {
-        const imgVal = q.imageId.trim();
-        
-        // Jika teks diawali dengan http, berarti itu direct link dari ImgBB
-        if (imgVal.startsWith('http')) {
-          imgEl.src = imgVal;
-        } 
-        // TAMBAHKAN ELSE DI SINI untuk ID Google Drive
-        else {
-          imgEl.src = `https://drive.google.com/uc?export=view&id=${imgVal}`;
-        }
-        
-        imgEl.style.display = 'block';
-      } else {
-        imgEl.src = '';
-        imgEl.style.display = 'none';
+      // Jika teks diawali dengan http, berarti itu direct link dari ImgBB
+      if (imgVal.startsWith('http')) {
+        imgEl.src = imgVal;
+      } 
+      // JIKA BUKAN HTTP, ANGGAP SEBAGAI ID GOOGLE DRIVE
+      else {
+        imgEl.src = `https://drive.google.com/uc?export=view&id=${imgVal}`;
       }
-  
-      const optDiv = document.getElementById('modalOptions');
-      optDiv.innerHTML = '';
-      q.options.forEach((opt, idx)=>{
-        const btn = document.createElement('button');
-        btn.className = 'option-btn';
-        btn.textContent = `${String.fromCharCode(65+idx)}. ${opt}`;
-        btn.addEventListener('click', ()=> callback(idx));
-        optDiv.appendChild(btn);
-      });
-      document.getElementById('questionModal').style.display='flex';
+      
+      imgEl.style.display = 'block';
+    } else {
+      imgEl.src = '';
+      imgEl.style.display = 'none';
     }
 
     const optDiv = document.getElementById('modalOptions');
