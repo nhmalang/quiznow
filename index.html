@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Kuis Interaktif</title>
+  <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    /* (Bagian CSS tetap sama persis seperti file asli Anda, saya singkat untuk kerapihan, jangan hapus CSS aslinya) */
+    :root { --bg: #0a0f1c; --card: #111827; --primary: #0d6efd; --cyan: #06b6d4; --yellow: #eab308; --text: #f1f5f9; --muted: #94a3b8; --shadow: 0 10px 25px rgba(0,0,0,0.6); --radius: 16px; }
+    *{margin:0;padding:0;box-sizing:border-box;} body{font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text); display:flex; justify-content:center; align-items:center; min-height:100vh; padding:20px; background-image:radial-gradient(circle at 30% 30%,rgba(6,182,212,0.08) 0%,transparent 50%), radial-gradient(circle at 70% 70%,rgba(13,110,253,0.1) 0%,transparent 50%);}
+    .container{max-width:900px;width:100%; background:var(--card);border-radius:var(--radius); padding:20px 25px; box-shadow:var(--shadow),0 0 0 1px rgba(255,255,255,0.05);} h1{font-size:2rem;font-weight:700;text-align:center;margin-bottom:5px; background:linear-gradient(135deg,#3b82f6,#06b6d4); -webkit-background-clip:text;-webkit-text-fill-color:transparent; background-clip:text;}
+    .subtitle{text-align:center;color:var(--muted);margin-bottom:20px;font-size:0.95rem;} .group-section{display:flex;gap:15px;justify-content:center;margin-bottom:20px;flex-wrap:wrap;} .group-btn{flex:1;min-width:140px;padding:14px 20px;border-radius:20px;font-weight:700;font-size:1.1rem; border:2px solid #334155;background:#1e293b;color:#cbd5e1;cursor:pointer;transition:0.25s; display:flex;flex-direction:column;align-items:center;gap:5px;} .group-btn.active{border-color:#facc15;box-shadow:0 0 18px rgba(250,204,21,0.5);} .group-btn.g1.active{border-color:#3b82f6;box-shadow:0 0 18px #3b82f6;} .group-btn.g2.active{border-color:#f97316;box-shadow:0 0 18px #f97316;}
+    .group-score{font-size:1.8rem;font-weight:800; background:linear-gradient(135deg,#06b6d4,#3b82f6); -webkit-background-clip:text;-webkit-text-fill-color:transparent; background-clip:text;} .mode-switch{display:flex;gap:12px;justify-content:center;margin-bottom:20px;flex-wrap:wrap;} .mode-btn{padding:12px 28px;border-radius:40px;font-weight:600;font-size:1rem; border:2px solid #2d3a4f;background:transparent;color:#cbd5e1;cursor:pointer;transition:0.25s; display:flex;align-items:center;gap:8px;} .mode-btn.active{background:var(--primary);border-color:var(--primary);color:white;box-shadow:0 0 18px rgba(13,110,253,0.5);}
+    .controls{display:flex;flex-wrap:wrap;align-items:center;gap:12px;justify-content:center;margin-bottom:20px;} .control-group{display:flex;align-items:center;gap:8px;background:#1e293b;padding:8px 18px;border-radius:30px;} .control-group label{font-weight:500;color:#cbd5e1;font-size:0.9rem;} .control-group input{width:60px;padding:8px 10px;border-radius:20px;border:1px solid #334155;background:#0f172a;color:white;text-align:center;font-weight:600;} .btn{border:none;border-radius:30px;padding:10px 22px;font-weight:600;cursor:pointer;background:#1e293b;color:#e2e8f0;transition:0.2s;display:flex;align-items:center;gap:6px;border:1px solid #334155;} .btn-primary{background:var(--primary);border-color:var(--primary);color:white;} .btn-cyan{background:var(--cyan);border-color:var(--cyan);color:#0f172a;} .btn-warning{background:var(--yellow);border-color:var(--yellow);color:#0f172a;}
+    .grid-container{display:grid;gap:20px;margin:10px 0 25px;justify-content:center;} .box{aspect-ratio:1/1;border-radius:20px;display:flex;align-items:center;justify-content:center; font-size:2.5rem;color:white;cursor:pointer;transition:0.3s; box-shadow:0 8px 20px rgba(13,110,253,0.35);position:relative; border:2px solid rgba(255,255,255,0.2);font-weight:700; background:linear-gradient(145deg,#1e3a8a,#0d6efd);} .box:hover:not(.done){transform:translateY(-5px);box-shadow:0 15px 30px rgba(6,182,212,0.5);border-color:var(--cyan);} .box.correct{background:#10b981;border-color:#34d399;} .box.wrong{background:#ef4444;border-color:#f87171;} .box.done{cursor:not-allowed;opacity:0.9;}
+    .wheel-wrapper{display:flex;flex-direction:column;align-items:center;position:relative;margin:10px 0 25px;} canvas{max-width:100%;height:auto;} .pin{position:absolute;top:-10px;left:50%;transform:translateX(-50%); width:0;height:0;border-left:18px solid transparent;border-right:18px solid transparent; border-top:26px solid #facc15;filter:drop-shadow(0 4px 6px black);z-index:2;}
+    .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%; background:rgba(0,0,0,0.7);backdrop-filter:blur(6px); align-items:center;justify-content:center;z-index:100;} .modal-content{background:#1e293b;border-radius:24px;padding:30px;max-width:500px;width:90%; box-shadow:0 20px 40px rgba(0,0,0,0.8);color:white; max-height:90vh; overflow-y:auto;}
+    #modalQuestion { white-space: pre-wrap; margin-bottom: 15px;}
+    .modal-image { width: 100%; max-height: 250px; object-fit: contain; border-radius: 12px; margin-bottom: 15px; display: none; background: #0f172a; padding: 5px; border: 1px solid #334155; }
+    .option-btn{display:block;width:100%;padding:12px;margin:8px 0;background:#0f172a; border:1px solid #334155;border-radius:12px;color:#e2e8f0;font-weight:500; cursor:pointer;transition:0.2s;text-align:left;} .option-btn:hover{background:#2563eb;border-color:#3b82f6;} .close-modal{background:#334155;border:none;color:white;padding:10px 20px;border-radius:20px;font-weight:600;cursor:pointer;margin-top:15px;} textarea{width:100%;min-height:200px;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:12px;padding:12px;font-family:monospace;resize:vertical;}
+    .remote-box-grid{display:grid;gap:12px;justify-content:center;} .remote-box{aspect-ratio:1/1;background:#1e293b;border:2px solid #334155;border-radius:16px; display:flex;align-items:center;justify-content:center;font-size:1.8rem; color:white;cursor:pointer;transition:0.2s;font-weight:600; position:relative;} .remote-box:hover:not(.disabled){background:#2563eb;border-color:#3b82f6;} .remote-box.disabled{cursor:not-allowed;opacity:0.7;} .remote-box.correct{background:#065f46;border-color:#10b981;} .remote-box.wrong{background:#7f1d1d;border-color:#ef4444;} .remote-box .status-icon{font-size:2rem;line-height:1;} .remote-panel{margin-top:20px;padding:15px;background:#1e293b;border-radius:16px;text-align:center;} .remote-panel h3{margin-bottom:10px;} #qrcode{display:inline-block;margin:10px;}
+  </style>
+</head>
+<body>
+<div class="container" id="mainContainer">
+  <!-- Konten di-render oleh JavaScript -->
+</div>
+
+<!-- Modal Soal -->
+<div id="questionModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h3 id="modalQuestion"></h3>
+    <!-- Tambahan Tag Image -->
+    <img id="modalImage" class="modal-image" src="" alt="Soal Bergambar">
+    
+    <div id="modalOptions"></div>
+    <button class="close-modal" id="closeModalBtn">Tutup</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  // --- KONFIGURASI API ---
+  const SCRIPT_URL = "MASUKKAN_URL_APPS_SCRIPT_ANDA_DISINI";
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const role = urlParams.get('role');
+  const hostId = urlParams.get('host');
+  const isHost = (role !== 'controller');
+  const isController = (role === 'controller') && hostId;
+
+  let peer, conn;
+  const PEER_SERVER = { host: '0.peerjs.com', port: 443, secure: true };
+
+  let currentMode = 'box';
+  let boxCount = 0; 
+  let segmentCount = 0; 
+  let groupScores = [0, 0];
+  let activeGroup = 0;
+  
+  // Kosongkan array, akan diisi otomatis dari Spreadsheet
+  let boxQuestions = [];
+  let wheelQuestions = [];
+  let boxStatus = [];
+  let wheelAnswered = [];
+  let wheelAngle = 0, spinning = false;
+
+  function renderUI() {
+    const container = document.getElementById('mainContainer');
+    if (isHost) {
+      container.innerHTML = getHostHTML();
+      initHost();
+    } else if (isController) {
+      container.innerHTML = getControllerHTML();
+      initController();
+    }
+  }
+
+  function getHostHTML() {
+    return `
+      <h1>🎮 Game Kuis Interaktif (Host)</h1>
+      <p class="subtitle">Didukung oleh Spreadsheet & Google Drive</p>
+      <div class="group-section">
+        <button id="group1Btn" class="group-btn g1 active"><span>🔵 Kelompok 1</span><span class="group-score" id="score1">0</span></button>
+        <button id="group2Btn" class="group-btn g2"><span>🟠 Kelompok 2</span><span class="group-score" id="score2">0</span></button>
+        <button id="resetScoresBtn" class="btn">🔄 Reset Skor</button>
+      </div>
+      <div class="mode-switch">
+        <button id="btnBoxMode" class="mode-btn active"><i>📦</i> Buka Kotak</button>
+        <button id="btnWheelMode" class="mode-btn"><i>🎡</i> Roda Acak</button>
+      </div>
+      <div id="boxPanel">
+        <div class="controls">
+          <button id="refreshDataBox" class="btn btn-primary">⬇️ Refresh dari Sheet</button>
+          <button id="resetBoxes" class="btn btn-cyan">🔄 Reset Kotak</button>
+        </div>
+        <div id="boxGrid" class="grid-container" style="grid-template-columns: repeat(4, 100px);"></div>
+      </div>
+      <div id="wheelPanel" style="display:none;">
+        <div class="controls">
+          <button id="refreshDataWheel" class="btn btn-primary">⬇️ Refresh dari Sheet</button>
+          <button id="spinWheel" class="btn btn-warning">🎲 Putar Roda</button>
+          <button id="resetWheel" class="btn btn-cyan">🔄 Reset Roda</button>
+        </div>
+        <div class="wheel-wrapper"><div class="pin"></div><canvas id="wheelCanvas" width="400" height="400"></canvas></div>
+      </div>
+      <div class="remote-panel">
+        <h3>📡 Remote Control</h3>
+        <p>Scan QR di HP untuk mengontrol game ini</p>
+        <div id="qrcode"></div>
+        <p style="font-size:0.85rem;color:var(--muted);">Atau buka: <span id="remoteLink"></span></p>
+      </div>
+    `;
+  }
+
+  function getControllerHTML() {
+    return `
+      <h1>🎮 Remote Control</h1>
+      <p class="subtitle">Kontrol permainan di tablet</p>
+      <div style="display:flex; gap:10px; justify-content:center; margin-bottom:20px;">
+        <button id="ctrlGroup1" class="btn" style="background:#3b82f6;">🔵 Pilih Kelompok 1</button>
+        <button id="ctrlGroup2" class="btn" style="background:#f97316;">🟠 Pilih Kelompok 2</button>
+      </div>
+      <button id="ctrlSpinWheel" class="btn btn-warning" style="width:100%; margin-bottom:20px;">🎲 Putar Roda</button>
+      <h3 style="text-align:center;">📦 Buka Kotak</h3>
+      <div id="remoteBoxGrid" class="remote-box-grid" style="grid-template-columns: repeat(4, 70px);"></div>
+      <button id="ctrlResetScores" class="btn" style="margin-top:20px;">🔄 Reset Skor</button>
+    `;
+  }
+
+  let connections = [];
+
+  async function fetchQuestionsFromSheet() {
+    if (SCRIPT_URL === "MASUKKAN_URL_APPS_SCRIPT_ANDA_DISINI") {
+      alert("Harap masukkan URL Apps Script di dalam kode terlebih dahulu!");
+      return;
+    }
+    
+    try {
+      const btnB = document.getElementById('refreshDataBox');
+      const btnW = document.getElementById('refreshDataWheel');
+      if(btnB) btnB.textContent = "Sedang Memuat...";
+      if(btnW) btnW.textContent = "Sedang Memuat...";
+
+      const response = await fetch(SCRIPT_URL);
+      const data = await response.json();
+      
+      // Filter berdasarkan tipe
+      boxQuestions = data.filter(q => q.type === 'box');
+      wheelQuestions = data.filter(q => q.type === 'wheel');
+      
+      boxCount = boxQuestions.length;
+      segmentCount = wheelQuestions.length;
+      
+      // Reset Status
+      boxStatus = Array(boxCount).fill().map(() => ({answered:false, correct:null}));
+      wheelAnswered = Array(segmentCount).fill(false);
+      
+      renderBoxes();
+      drawWheel();
+      sendSyncAll();
+
+      if(btnB) btnB.textContent = "⬇️ Refresh dari Sheet";
+      if(btnW) btnW.textContent = "⬇️ Refresh dari Sheet";
+      
+    } catch (error) {
+      console.error("Gagal memuat soal dari Sheet:", error);
+      alert("Gagal memuat database. Periksa koneksi atau URL Apps Script.");
+    }
+  }
+
+  function initHost() {
+    const myPeerId = 'game-host-' + Math.random().toString(36).substr(2, 6);
+    peer = new Peer(myPeerId, PEER_SERVER);
+
+    peer.on('open', (id) => {
+      const remoteUrl = `${window.location.origin}${window.location.pathname}?role=controller&host=${id}`;
+      document.getElementById('remoteLink').innerText = remoteUrl;
+      new QRCode(document.getElementById('qrcode'), { text: remoteUrl, width: 128, height: 128 });
+    });
+
+    peer.on('connection', (c) => {
+      connections.push(c);
+      c.on('data', handleRemoteCommand);
+      c.on('open', () => sendSyncTo(c));
+      c.on('close', () => connections = connections.filter(conn => conn !== c));
+    });
+
+    initGame();
+    fetchQuestionsFromSheet(); // Muat otomatis saat pertama kali buka
+  }
+
+  function sendSyncTo(conn) {
+    conn.send({
+      type: 'sync', boxCount, segmentCount, activeGroup, groupScores,
+      boxStatus: boxStatus.map(st => ({ answered: st.answered, correct: st.correct }))
+    });
+  }
+
+  function sendSyncAll() { connections.forEach(c => sendSyncTo(c)); }
+
+  function handleRemoteCommand(data) {
+    if (!data || !data.action) return;
+    switch (data.action) {
+      case 'setGroup': if (data.group === 0 || data.group === 1) { activeGroup = data.group; updateScoreDisplay(); sendSyncAll(); } break;
+      case 'spinWheel': if (currentMode === 'wheel') spinWheelAction(); break;
+      case 'openBox': if (currentMode === 'box' && data.index !== undefined) { const idx = parseInt(data.index); if (idx >= 0 && idx < boxCount) openBoxQuestion(idx); } break;
+      case 'resetScores': groupScores = [0,0]; updateScoreDisplay(); sendSyncAll(); break;
+    }
+  }
+
+  function updateScoreDisplay() {
+    document.getElementById('score1').textContent = groupScores[0];
+    document.getElementById('score2').textContent = groupScores[1];
+    document.getElementById('group1Btn').classList.toggle('active', activeGroup === 0);
+    document.getElementById('group2Btn').classList.toggle('active', activeGroup === 1);
+  }
+
+  function initGame() {
+    document.getElementById('btnBoxMode').addEventListener('click', ()=> setMode('box'));
+    document.getElementById('btnWheelMode').addEventListener('click', ()=> setMode('wheel'));
+    document.getElementById('group1Btn').addEventListener('click', ()=>{ activeGroup=0; updateScoreDisplay(); sendSyncAll(); });
+    document.getElementById('group2Btn').addEventListener('click', ()=>{ activeGroup=1; updateScoreDisplay(); sendSyncAll(); });
+    document.getElementById('resetScoresBtn').addEventListener('click', ()=>{ groupScores=[0,0]; updateScoreDisplay(); sendSyncAll(); });
+
+    document.getElementById('refreshDataBox').addEventListener('click', fetchQuestionsFromSheet);
+    document.getElementById('refreshDataWheel').addEventListener('click', fetchQuestionsFromSheet);
+
+    document.getElementById('resetBoxes').addEventListener('click', ()=>{
+      boxStatus = boxStatus.map(()=>({answered:false, correct:null}));
+      renderBoxes(); sendSyncAll();
+    });
+
+    document.getElementById('spinWheel').addEventListener('click', spinWheelAction);
+    document.getElementById('resetWheel').addEventListener('click', ()=>{
+      wheelAnswered = wheelAnswered.map(()=>false); wheelAngle=0; drawWheel();
+    });
+
+    document.getElementById('closeModalBtn').addEventListener('click', ()=> document.getElementById('questionModal').style.display='none');
+    
+    setMode('box');
+    updateScoreDisplay();
+  }
+
+  function renderBoxes() {
+    const grid = document.getElementById('boxGrid');
+    grid.innerHTML = '';
+    if(boxCount === 0) return;
+    let cols = boxCount <= 4 ? boxCount : Math.ceil(Math.sqrt(boxCount));
+    grid.style.gridTemplateColumns = `repeat(${cols}, minmax(85px, 110px))`;
+    for(let i=0; i<boxCount; i++) {
+      const box = document.createElement('div');
+      box.className = 'box';
+      if(boxStatus[i].answered) {
+        box.classList.add('done');
+        if(boxStatus[i].correct) box.classList.add('correct');
+        else box.classList.add('wrong');
+      }
+      box.textContent = i+1;
+      box.dataset.index = i;
+      box.addEventListener('click', ()=> openBoxQuestion(i));
+      grid.appendChild(box);
+    }
+  }
+
+  function openBoxQuestion(index) {
+    if(boxStatus[index].answered) return;
+    const q = boxQuestions[index];
+    showQuestionModal(q, (selected)=>{
+      const correct = (selected === q.correct);
+      boxStatus[index] = {answered:true, correct};
+      if(correct) groupScores[activeGroup]++;
+      updateScoreDisplay(); sendSyncAll(); renderBoxes();
+      document.getElementById('questionModal').style.display='none';
+    });
+  }
+
+  function showQuestionModal(q, callback) {
+    document.getElementById('modalQuestion').textContent = q.question;
+    
+    // RENDER GAMBAR DARI DRIVE JIKA ADA
+    const imgEl = document.getElementById('modalImage');
+    if (q.imageId && q.imageId.trim() !== '') {
+      // Mengubah ID file menjadi tautan render gambar ekspor
+      imgEl.src = `https://drive.google.com/uc?export=view&id=${q.imageId.trim()}`;
+      imgEl.style.display = 'block';
+    } else {
+      imgEl.src = '';
+      imgEl.style.display = 'none';
+    }
+
+    const optDiv = document.getElementById('modalOptions');
+    optDiv.innerHTML = '';
+    q.options.forEach((opt, idx)=>{
+      const btn = document.createElement('button');
+      btn.className = 'option-btn';
+      btn.textContent = `${String.fromCharCode(65+idx)}. ${opt}`;
+      btn.addEventListener('click', ()=> callback(idx));
+      optDiv.appendChild(btn);
+    });
+    document.getElementById('questionModal').style.display='flex';
+  }
+
+  function drawWheel() {
+    const canvas = document.getElementById('wheelCanvas');
+    if(!canvas || segmentCount === 0) return;
+    const ctx = canvas.getContext('2d');
+    const cx = canvas.width/2, cy = canvas.height/2, r = 180;
+    const segAngle = (2*Math.PI)/segmentCount;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    for(let i=0; i<segmentCount; i++) {
+      const start = wheelAngle + i*segAngle;
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,r,start,start+segAngle); ctx.closePath();
+      ctx.fillStyle = wheelAnswered[i] ? '#4b5563' : (i%2===0?'#1d4ed8':'#0e7490');
+      ctx.fill(); ctx.strokeStyle='#ffffff33'; ctx.lineWidth=2; ctx.stroke();
+      ctx.save(); ctx.translate(cx,cy); ctx.rotate(start+segAngle/2);
+      ctx.fillStyle='white'; ctx.font='bold 13px "Segoe UI"'; ctx.textAlign='center';
+      ctx.fillText(`${i+1}`, r*0.7, 5);
+      ctx.restore();
+    }
+    ctx.beginPath(); ctx.arc(cx,cy,25,0,2*Math.PI); ctx.fillStyle='#0f172a'; ctx.fill();
+    ctx.strokeStyle='#facc15'; ctx.lineWidth=3; ctx.stroke();
+  }
+
+  function spinWheelAction() {
+    if(spinning) return;
+    if(segmentCount === 0) { alert('Soal roda kosong, ambil data dari Sheet.'); return; }
+    if(wheelAnswered.every(v=>v)) { alert('Semua segmen sudah terjawab!'); return; }
+    spinning = true;
+    const totalSpin = (Math.random()*5+5)*2*Math.PI;
+    const startAngle = wheelAngle, startTime = performance.now();
+    function animate(now) {
+      const elapsed = now-startTime, progress = Math.min(elapsed/4000,1);
+      wheelAngle = startAngle + totalSpin*(1 - Math.pow(1-progress,3));
+      drawWheel();
+      if(progress<1) requestAnimationFrame(animate);
+      else {
+        spinning=false;
+        const segAngle = (2*Math.PI)/segmentCount;
+        let idx = Math.floor(((-Math.PI/2 - wheelAngle + 2*Math.PI)%(2*Math.PI))/segAngle) % segmentCount;
+        idx = ((idx%segmentCount)+segmentCount)%segmentCount;
+        if(wheelAnswered[idx]) {
+          for(let i=0; i<segmentCount; i++) if(!wheelAnswered[(idx+i)%segmentCount]) { idx=(idx+i)%segmentCount; break; }
+        }
+        wheelAnswered[idx] = true; drawWheel();
+        showQuestionModal(wheelQuestions[idx], (selected)=>{
+          if(selected === wheelQuestions[idx].correct) groupScores[activeGroup]++;
+          updateScoreDisplay(); sendSyncAll();
+          document.getElementById('questionModal').style.display='none';
+        });
+      }
+    }
+    requestAnimationFrame(animate);
+  }
+
+  function setMode(mode) {
+    currentMode = mode;
+    document.getElementById('boxPanel').style.display = (mode==='box') ? 'block' : 'none';
+    document.getElementById('wheelPanel').style.display = (mode==='wheel') ? 'block' : 'none';
+    document.getElementById('btnBoxMode').classList.toggle('active', mode==='box');
+    document.getElementById('btnWheelMode').classList.toggle('active', mode==='wheel');
+    if(mode==='wheel') drawWheel();
+  }
+
+  function initController() {
+    peer = new Peer(undefined, PEER_SERVER);
+    peer.on('open', () => {
+      conn = peer.connect(hostId, { reliable: true });
+      conn.on('open', () => {
+        document.getElementById('ctrlGroup1').addEventListener('click', ()=> conn.send({ action:'setGroup', group:0 }));
+        document.getElementById('ctrlGroup2').addEventListener('click', ()=> conn.send({ action:'setGroup', group:1 }));
+        document.getElementById('ctrlSpinWheel').addEventListener('click', ()=> conn.send({ action:'spinWheel' }));
+        document.getElementById('ctrlResetScores').addEventListener('click', ()=> conn.send({ action:'resetScores' }));
+        renderRemoteBoxes();
+      });
+      conn.on('data', (data) => {
+        if (data.type === 'sync') {
+          remoteBoxCount = data.boxCount;
+          remoteBoxStatus = data.boxStatus || [];
+          renderRemoteBoxes();
+        }
+      });
+    });
+  }
+
+  function renderRemoteBoxes() {
+    const grid = document.getElementById('remoteBoxGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    while(remoteBoxStatus.length < remoteBoxCount) remoteBoxStatus.push({answered:false, correct:null});
+    if(remoteBoxStatus.length > remoteBoxCount) remoteBoxStatus.length = remoteBoxCount;
+
+    let cols = remoteBoxCount <= 4 ? remoteBoxCount : Math.ceil(Math.sqrt(remoteBoxCount));
+    grid.style.gridTemplateColumns = `repeat(${cols}, minmax(65px, 80px))`;
+
+    for (let i = 0; i < remoteBoxCount; i++) {
+      const st = remoteBoxStatus[i] || {answered:false, correct:null};
+      const box = document.createElement('div');
+      box.className = 'remote-box';
+      if (st.answered) {
+        box.classList.add('disabled');
+        if (st.correct) box.classList.add('correct');
+        else box.classList.add('wrong');
+        box.innerHTML = `<span class="status-icon">${st.correct ? '✓' : '✗'}</span>`;
+      } else {
+        box.textContent = i+1;
+        box.addEventListener('click', (() => { const idx = i; return () => { conn.send({ action: 'openBox', index: idx }); }; })());
+      }
+      grid.appendChild(box);
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', renderUI);
+})();
+</script>
+</body>
+</html>
