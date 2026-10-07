@@ -274,24 +274,38 @@
   }
 
   function showQuestionModal(q, callback) {
-    document.getElementById('modalQuestion').textContent = q.question;
-    
-    // RENDER GAMBAR DARI DRIVE JIKA ADA
-    const imgEl = document.getElementById('modalImage');
-    if (q.imageId && q.imageId.trim() !== '') {
-      const imgVal = q.imageId.trim();
-      // Jika teks diawali dengan http, berarti itu direct link dari ImgBB/hosting lain
-      if (imgVal.startsWith('http')) {
-        imgEl.src = imgVal;
+      document.getElementById('modalQuestion').textContent = q.question;
+      
+      // RENDER GAMBAR DARI DRIVE ATAU IMGBB
+      const imgEl = document.getElementById('modalImage');
+      if (q.imageId && q.imageId.trim() !== '') {
+        const imgVal = q.imageId.trim();
+        
+        // Jika teks diawali dengan http, berarti itu direct link dari ImgBB
+        if (imgVal.startsWith('http')) {
+          imgEl.src = imgVal;
+        } 
+        // TAMBAHKAN ELSE DI SINI untuk ID Google Drive
+        else {
+          imgEl.src = `https://drive.google.com/uc?export=view&id=${imgVal}`;
+        }
+        
+        imgEl.style.display = 'block';
+      } else {
+        imgEl.src = '';
+        imgEl.style.display = 'none';
       }
-      else{
-      // Mengubah ID file menjadi tautan render gambar ekspor
-      imgEl.src = `https://drive.google.com/uc?export=view&id=${q.imageId.trim()}`;
-      imgEl.style.display = 'block';
-    } 
-    else {
-      imgEl.src = '';
-      imgEl.style.display = 'none';
+  
+      const optDiv = document.getElementById('modalOptions');
+      optDiv.innerHTML = '';
+      q.options.forEach((opt, idx)=>{
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.textContent = `${String.fromCharCode(65+idx)}. ${opt}`;
+        btn.addEventListener('click', ()=> callback(idx));
+        optDiv.appendChild(btn);
+      });
+      document.getElementById('questionModal').style.display='flex';
     }
 
     const optDiv = document.getElementById('modalOptions');
