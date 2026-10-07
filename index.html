@@ -133,11 +133,7 @@
   let connections = [];
 
   async function fetchQuestionsFromSheet() {
-    if (SCRIPT_URL === "https://script.google.com/macros/s/AKfycbyX5ctInlrUaD_BXNcL20S45NJvvdjXlZjlvmjfcmqQ5FYVyGO_34UX9Wk0Wb9gMOhG/exec") {
-      alert("Harap masukkan URL Apps Script di dalam kode terlebih dahulu!");
-      return;
-    }
-    
+        
     try {
       const btnB = document.getElementById('refreshDataBox');
       const btnW = document.getElementById('refreshDataWheel');
