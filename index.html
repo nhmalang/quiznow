@@ -284,10 +284,12 @@
       if (imgVal.startsWith('http')) {
         imgEl.src = imgVal;
       }
+      else{
       // Mengubah ID file menjadi tautan render gambar ekspor
       imgEl.src = `https://drive.google.com/uc?export=view&id=${q.imageId.trim()}`;
       imgEl.style.display = 'block';
-    } else {
+    } 
+    else {
       imgEl.src = '';
       imgEl.style.display = 'none';
     }
