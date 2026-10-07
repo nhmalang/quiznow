@@ -279,6 +279,10 @@
     // RENDER GAMBAR DARI DRIVE JIKA ADA
     const imgEl = document.getElementById('modalImage');
     if (q.imageId && q.imageId.trim() !== '') {
+      // Jika teks diawali dengan http, berarti itu direct link dari ImgBB/hosting lain
+      if (imgVal.startsWith('http')) {
+        imgEl.src = imgVal;
+      }
       // Mengubah ID file menjadi tautan render gambar ekspor
       imgEl.src = `https://drive.google.com/uc?export=view&id=${q.imageId.trim()}`;
       imgEl.style.display = 'block';
