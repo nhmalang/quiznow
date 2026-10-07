@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Game Kuis Interaktif</title>
+  <title>Kuis Interaktif</title>
   <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <style>
@@ -43,7 +43,7 @@
 <script>
 (function() {
   // --- KONFIGURASI API ---
-  const SCRIPT_URL = "MASUKKAN_URL_APPS_SCRIPT_ANDA_DISINI";
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyX5ctInlrUaD_BXNcL20S45NJvvdjXlZjlvmjfcmqQ5FYVyGO_34UX9Wk0Wb9gMOhG/exec";
 
   const urlParams = new URLSearchParams(window.location.search);
   const role = urlParams.get('role');
@@ -80,7 +80,7 @@
 
   function getHostHTML() {
     return `
-      <h1>🎮 Game Kuis Interaktif (Host)</h1>
+      <h1>🎮 Kuis Interaktif (Host)</h1>
       <p class="subtitle">Didukung oleh Spreadsheet & Google Drive</p>
       <div class="group-section">
         <button id="group1Btn" class="group-btn g1 active"><span>🔵 Kelompok 1</span><span class="group-score" id="score1">0</span></button>
@@ -133,7 +133,7 @@
   let connections = [];
 
   async function fetchQuestionsFromSheet() {
-    if (SCRIPT_URL === "MASUKKAN_URL_APPS_SCRIPT_ANDA_DISINI") {
+    if (SCRIPT_URL === "https://script.google.com/macros/s/AKfycbyX5ctInlrUaD_BXNcL20S45NJvvdjXlZjlvmjfcmqQ5FYVyGO_34UX9Wk0Wb9gMOhG/exec") {
       alert("Harap masukkan URL Apps Script di dalam kode terlebih dahulu!");
       return;
     }
